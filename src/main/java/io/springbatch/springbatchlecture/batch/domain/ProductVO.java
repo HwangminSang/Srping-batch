@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class ProductVO {
 
     private Long id;
+    private String productId;
     private String name;
     private int price;
     private String type;

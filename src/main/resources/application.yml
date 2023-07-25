@@ -6,7 +6,9 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    database-platform: org.hibernate.dialect.MySQL57Dialect
     show-sql: true
     properties:
       hibernate.format_sql: true
@@ -30,13 +32,13 @@ spring:
       on-profile: mysql
   datasource:
     hikari:
-      jdbc-url: jdbc:mysql://localhost:3306/springbatch?useUnicode=true&characterEncoding=utf8
+      jdbc-url: jdbc:mysql://localhost:3306/batch?useUnicode=true&characterEncoding=utf8
       username: root
-      password: pass
-      driver-class-name: com.mysql.jdbc.Driver
+      password: 1234
+      driver-class-name: com.mysql.cj.jdbc.Driver
   batch:
     job:
       names: ${job.name:NONE}
-      enabled: false
+      enabled: true
     jdbc:
       initialize-schema: always

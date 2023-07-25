@@ -1,13 +1,14 @@
 package io.springbatch.springbatchlecture.batch.job.api;
 
+
 import io.springbatch.springbatchlecture.batch.chunk.processor.ApiItemProcessor1;
 import io.springbatch.springbatchlecture.batch.chunk.processor.ApiItemProcessor2;
 import io.springbatch.springbatchlecture.batch.chunk.processor.ApiItemProcessor3;
-import io.springbatch.springbatchlecture.batch.chunk.processor.ProcessorClassifier;
 import io.springbatch.springbatchlecture.batch.chunk.writer.ApiItemWriter1;
 import io.springbatch.springbatchlecture.batch.chunk.writer.ApiItemWriter2;
 import io.springbatch.springbatchlecture.batch.chunk.writer.ApiItemWriter3;
-import io.springbatch.springbatchlecture.batch.chunk.writer.WriterClassifier;
+import io.springbatch.springbatchlecture.batch.classifier.ProcessorClassifier;
+import io.springbatch.springbatchlecture.batch.classifier.WriterClassifier;
 import io.springbatch.springbatchlecture.batch.domain.ApiRequestVO;
 import io.springbatch.springbatchlecture.batch.domain.ProductVO;
 import io.springbatch.springbatchlecture.batch.partition.ProductPartitioner;
@@ -39,115 +40,160 @@ import java.util.Map;
 
 @Configuration
 @RequiredArgsConstructor
-public class ApiStepConfiguration {
+public class ApiStepConfiguration { // 마스터 스텝
+
+
 
     private final StepBuilderFactory stepBuilderFactory;
+
     private final DataSource dataSource;
 
     private int chunkSize = 10;
 
+    private final ApiService1 apiService1;
+
+
+    private final ApiService2 apiService2;
+
+    private final ApiService3 apiService3;
+
+
+
+
     @Bean
     public Step apiMasterStep() throws Exception {
-
-        ProductVO[] productList = QueryGenerator.getProductList(dataSource);
-
-        return stepBuilderFactory.get("apiMasterStep")
-                .partitioner(apiSlaveStep().getName(), partitioner())
-                .step(apiSlaveStep())
-                .gridSize(productList.length)
-                .taskExecutor(taskExecutor())
-                .build();
+            return stepBuilderFactory.get("apiMasterStep")
+                    .partitioner(apiSlaveStep().getName() , partitioner())
+                    .step(apiSlaveStep())  // 복제당할 slaveStep
+                    .gridSize(3) //
+                    .taskExecutor(taskExecutor()) // 멀티스레드
+                    .build();
     }
 
+
     @Bean
-    public TaskExecutor taskExecutor(){
+    public TaskExecutor taskExecutor() {
+
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(3);
-        taskExecutor.setMaxPoolSize(6);
+        taskExecutor.setCorePoolSize(3); // 기본 3개
+        taskExecutor.setMaxPoolSize(6); // 최대 6개
         taskExecutor.setThreadNamePrefix("api-thread-");
 
         return taskExecutor;
+
+
     }
+
 
     @Bean
     public Step apiSlaveStep() throws Exception {
 
         return stepBuilderFactory.get("apiSlaveStep")
-                .<ProductVO, ProductVO>chunk(chunkSize)
-                .reader(itemReader(null))
-                .processor(itemProcessor())
-                .writer(itemWriter())
+                .<ProductVO,ProductVO>chunk(chunkSize)
+                // 각각의 스레드가 reader ,processor , write 를 가진다.
+                // thread간의 데이터 공유는 없다. ExecutionContext를 각각 가진다.
+                .reader(itemReader(null)) // 컴파일 오류 방지
+                .processor(itemProcessor()) // 조건에 맞는 itemProcessor 호출
+                .writer(itemWrite()) // 프로세서가 전달하는것에 맞는 write가 처리
                 .build();
+
+
+    }
+
+
+
+
+
+
+    @Bean
+    public ProductPartitioner partitioner(){
+
+        ProductPartitioner partitioner = new ProductPartitioner();
+
+        partitioner.setDataSource(dataSource);
+
+        return partitioner;
+
+
     }
 
     @Bean
-    public ProductPartitioner partitioner() {
-        ProductPartitioner productPartitioner = new ProductPartitioner();
-        productPartitioner.setDataSource(dataSource);
-        return productPartitioner;
-    }
-
-    @Bean
-    @StepScope
+    @StepScope  // 각각의 스레드는 스스로의 StepExecutionContext를 가지고 있다.
     public ItemReader<ProductVO> itemReader(@Value("#{stepExecutionContext['product']}") ProductVO productVO) throws Exception {
+
 
         JdbcPagingItemReader<ProductVO> reader = new JdbcPagingItemReader<>();
 
         reader.setDataSource(dataSource);
         reader.setPageSize(chunkSize);
-        reader.setRowMapper(new BeanPropertyRowMapper(ProductVO.class));
+        reader.setRowMapper(new BeanPropertyRowMapper<>(ProductVO.class));
 
-        MySqlPagingQueryProvider queryProvider = new MySqlPagingQueryProvider();
-        queryProvider.setSelectClause("id, name, price, type");
-        queryProvider.setFromClause("from product");
-        queryProvider.setWhereClause("where type = :type");
 
-        Map<String, Order> sortKeys = new HashMap<>(1);
-        sortKeys.put("id", Order.DESCENDING);
-        queryProvider.setSortKeys(sortKeys);
+        MySqlPagingQueryProvider mySqlPagingQueryProvider = new MySqlPagingQueryProvider();
 
-        reader.setParameterValues(QueryGenerator.getParameterForQuery("type", productVO.getType()));
-        reader.setQueryProvider(queryProvider);
+        mySqlPagingQueryProvider.setSelectClause("ID , PRODUCT_ID , NAME , PRICE ,TYPE");
+        mySqlPagingQueryProvider.setFromClause("FROM PRODUCT");
+        mySqlPagingQueryProvider.setWhereClause("WHERE TYPE = :TYPE");
+        Map<String , Order> sortKeys = new HashMap<>(1);
+        sortKeys.put("id",Order.DESCENDING);
+
+        mySqlPagingQueryProvider.setSortKeys(sortKeys);
+
+
+        reader.setParameterValues(QueryGenerator.getParameterForQuery("TYPE", productVO.getType()));
+        reader.setQueryProvider(mySqlPagingQueryProvider);
         reader.afterPropertiesSet();
 
         return reader;
     }
 
+
     @Bean
     public ItemProcessor itemProcessor() {
+        // 각각의 값에 따라 처리하기 위해 사용
+        ClassifierCompositeItemProcessor<ProductVO , ApiRequestVO> processor = new ClassifierCompositeItemProcessor<>();
 
-        ClassifierCompositeItemProcessor<ProductVO, ApiRequestVO> processor = new ClassifierCompositeItemProcessor<>();
 
-        ProcessorClassifier<ProductVO, ItemProcessor<?, ? extends ApiRequestVO>> classifier = new ProcessorClassifier();
+        // c의 조건에 따라 t를 반환
+        ProcessorClassifier<ProductVO , ItemProcessor<?,? extends ApiRequestVO>> classifier = new ProcessorClassifier<>();
 
         Map<String, ItemProcessor<ProductVO, ApiRequestVO>> processorMap = new HashMap<>();
-        processorMap.put("1", new ApiItemProcessor1());
-        processorMap.put("2", new ApiItemProcessor2());
-        processorMap.put("3", new ApiItemProcessor3());
+        // 상품 타입의 숫자
+        processorMap.put("1" , new ApiItemProcessor1());
+        processorMap.put("2" , new ApiItemProcessor2());
+        processorMap.put("3" , new ApiItemProcessor3());
 
         classifier.setProcessorMap(processorMap);
-
         processor.setClassifier(classifier);
 
-        return processor;
+
+        return processor ;
     }
+
 
     @Bean
-    public ItemWriter itemWriter() {
+    public ItemWriter itemWrite() {
 
+
+        // 각각의 값에 따라 처리하기 위해 사용
         ClassifierCompositeItemWriter<ApiRequestVO> writer = new ClassifierCompositeItemWriter<>();
 
-        WriterClassifier<ApiRequestVO, ItemWriter<? super ApiRequestVO>> classifier = new WriterClassifier();
 
-        Map<String, ItemWriter<ApiRequestVO>> writerMap = new HashMap<>();
-        writerMap.put("1", new ApiItemWriter1(new ApiService1()));
-        writerMap.put("2", new ApiItemWriter2(new ApiService2()));
-        writerMap.put("3", new ApiItemWriter3(new ApiService3()));
+        // c의 조건에 따라 t를 반환
+        WriterClassifier<ApiRequestVO , ItemWriter<? super ApiRequestVO>> classifier = new WriterClassifier<>();
+
+        Map<String , ItemWriter<ApiRequestVO>> writerMap = new HashMap<>();
+        // 상품 타입의 숫자
+        writerMap.put("1" , new ApiItemWriter1(apiService1));
+        writerMap.put("2" , new ApiItemWriter2(apiService2));
+        writerMap.put("3" , new ApiItemWriter3(apiService3));
 
         classifier.setWriterMap(writerMap);
-
         writer.setClassifier(classifier);
 
-        return writer;
+        return  writer;
     }
+
+
+
 }

@@ -5,7 +5,8 @@ import io.springbatch.springbatchlecture.batch.domain.ProductVO;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-@Component
+
+// 각각의 스레드가 독립적으로 실행되도록 구성
 public class ApiItemProcessor1 implements ItemProcessor<ProductVO, ApiRequestVO> {
 
     @Override

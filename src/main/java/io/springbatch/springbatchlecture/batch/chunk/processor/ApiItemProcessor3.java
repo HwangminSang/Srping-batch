@@ -5,7 +5,6 @@ import io.springbatch.springbatchlecture.batch.domain.ProductVO;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
-@Component
 public class ApiItemProcessor3 implements ItemProcessor<ProductVO, ApiRequestVO> {
 
     @Override

@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 @Service
 public abstract class AbstractApiService {
 
+    // itemWriter에서 호출
+    // 각각의 사용자들에서 ApiInfo 객체를 리턴
     public ApiResponseVO service(List<? extends ApiRequestVO> apiRequest) {
 
         // 중계사업자와 API 연동 작업
@@ -42,11 +44,13 @@ public abstract class AbstractApiService {
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         ApiInfo apiInfo = ApiInfo.builder().apiRequestList(apiRequest).build();
-        HttpEntity<ApiInfo> reqEntity = new HttpEntity<>(apiInfo, headers);
+//        HttpEntity<ApiInfo> reqEntity = new HttpEntity<>(apiInfo, headers);
 
+        // 각각의 서버로 보내서 응답을 받아온다
         return doApiService(restTemplate, apiInfo);
 
     }
 
     protected abstract ApiResponseVO doApiService(RestTemplate restTemplate, ApiInfo apiInfo);
+
 }

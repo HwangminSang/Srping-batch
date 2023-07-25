@@ -1,4 +1,4 @@
-package io.springbatch.springbatchlecture.batch.chunk.writer;
+package io.springbatch.springbatchlecture.batch.classifier;
 
 import io.springbatch.springbatchlecture.batch.domain.ApiRequestVO;
 import io.springbatch.springbatchlecture.batch.domain.ProductVO;

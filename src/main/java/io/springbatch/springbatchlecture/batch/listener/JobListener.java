@@ -2,6 +2,9 @@ package io.springbatch.springbatchlecture.batch.listener;
 
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.util.StopWatch;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * <pre>
@@ -24,6 +27,7 @@ public class JobListener implements JobExecutionListener {
 
     @Override
     public void afterJob(JobExecution jobExecution) {
+
         long time = jobExecution.getEndTime().getTime() - jobExecution.getStartTime().getTime();
         System.out.println("총 소요시간 : " + time);
     }

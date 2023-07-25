@@ -11,6 +11,7 @@ public class ProductRowMapper implements RowMapper<ProductVO> {
     public ProductVO mapRow(ResultSet rs, int i) throws SQLException {
         return ProductVO.builder()
                 .id(rs.getLong("id"))
+                .productId(rs.getString("productId"))
                 .name(rs.getString("name"))
                 .price(rs.getInt("price"))
                 .type(rs.getString("type"))

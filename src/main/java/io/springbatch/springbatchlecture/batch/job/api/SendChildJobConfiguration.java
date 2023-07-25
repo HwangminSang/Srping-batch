@@ -15,8 +15,8 @@ public class SendChildJobConfiguration {
 
     private final JobBuilderFactory jobBuilderFactory;
     private final StepBuilderFactory stepBuilderFactory;
-    private final Step apiMasterStep;
-    private final JobLauncher jobLauncher;
+    private final Step apiMasterStep; // 멀티스레드
+    private final JobLauncher jobLauncher;  // jobStep을 이용하기 위해 필요
 
     @Bean
     public Step jobStep() throws Exception {
@@ -29,7 +29,7 @@ public class SendChildJobConfiguration {
     @Bean
     public Job childJob() throws Exception {
         return jobBuilderFactory.get("childJob")
-                .start(apiMasterStep)
+                .start(apiMasterStep) // 마스터 스텝 실행시 슬레이브 스텝을 복사하여 시작 ( 청크기반 멀티스레드)
                 .build();
     }
 }
