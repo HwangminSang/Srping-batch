@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="BatchApiServerApplication1 (1)" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="New Folder" singleton="false">
+    <module name="batch-api-server" />
+    <option name="PROGRAM_PARAMETERS" value="--server.port=9002" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.batchapiserver.BatchApiServerApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
