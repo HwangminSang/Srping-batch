@@ -26,7 +26,8 @@ public class Controller {
 
 
 
-        return ResponseEntity.ok("1 : success :" );
+
+        return ResponseEntity.ok("true" );
     }
 
 
@@ -40,7 +41,7 @@ public class Controller {
         log.info("상품 아이디" + aLong);
 
 
-        return ResponseEntity.ok("2 : success :" );
+        return ResponseEntity.ok("true" );
     }
 
     @PostMapping("/product/3")
@@ -54,7 +55,7 @@ public class Controller {
         log.info("상품 아이디" + aLong);
 
 
-        return ResponseEntity.ok("3 : success :" );
+        return ResponseEntity.ok("true" );
     }
 
 

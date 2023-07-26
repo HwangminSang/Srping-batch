@@ -31,12 +31,12 @@ public class ApiItemWriter3 extends FlatFileItemWriter<ApiRequestVO> {
         ApiResponseVO response = apiService.service(items);
         System.out.println("response = " + response);
 
-//        items.forEach(item -> item.setApiResponseVO(response));
-//
-//        super.setResource(new FileSystemResource("C:\\jsw\\inflearn\\spring-batch-lecture\\src\\main\\resources\\product3.txt"));
-//        super.open(new ExecutionContext());
-//        super.setLineAggregator(new DelimitedLineAggregator<>());
-//        super.setAppendAllowed(true);
-//        super.write(items);
+        items.forEach(item -> item.setApiResponseVO(response));
+
+        super.setResource(new FileSystemResource("C:\\work\\spring-batch-lecture\\src\\main\\resources\\write\\product3.txt"));
+        super.open(new ExecutionContext());
+        super.setLineAggregator(new DelimitedLineAggregator<>());
+        super.setAppendAllowed(true);
+        super.write(items);
     }
 }

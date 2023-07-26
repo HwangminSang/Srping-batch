@@ -1,35 +1,31 @@
 package io.springbatch.springbatchlecture.batch.entity;
 
 
+import io.springbatch.springbatchlecture.util.jpa.converter.BooleanToYNConverter;
 import lombok.*;
 
 import javax.persistence.*;
 
 @Entity
-@Table(name = "CUSTOMER")
+@Table(name = "API_RESULT")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class Customer extends BaseEntity {
-
+public class ApiResult extends  BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
 
-    @Column(name = "NAME")
-    private String name;
+    @Column(name = "SERVICE_NAME")
+    private String serviceName;
 
 
-    @Column(name ="PRICE")
-    private int price;
-
-
-    @Column(name ="TYPE")
-    private String type;
-
+    @Column(name ="STATUS")
+    @Convert(converter =  BooleanToYNConverter.class)
+    private boolean status;
 }

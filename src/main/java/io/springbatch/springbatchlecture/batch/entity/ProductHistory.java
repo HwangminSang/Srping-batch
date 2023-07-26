@@ -6,30 +6,26 @@ import lombok.*;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "CUSTOMER")
+@Table(name = "PRODUCT_NAME_HISTORY")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class Customer extends BaseEntity {
-
+public class ProductHistory extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @ManyToOne
+    @JoinColumn(name = "product_id")
+    private Product product;
 
-    @Column(name = "NAME")
-    private String name;
+    private String beforeProductName;
 
+    private String afterProductName;
 
-    @Column(name ="PRICE")
-    private int price;
-
-
-    @Column(name ="TYPE")
-    private String type;
 
 }

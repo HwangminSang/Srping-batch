@@ -34,6 +34,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
@@ -56,6 +57,8 @@ public class ApiStepConfiguration { // 마스터 스텝
     private final ApiService2 apiService2;
 
     private final ApiService3 apiService3;
+
+    private final EntityManagerFactory entityManagerFactory;
 
 
 
@@ -109,6 +112,7 @@ public class ApiStepConfiguration { // 마스터 스텝
     public ProductPartitioner partitioner(){
 
         ProductPartitioner partitioner = new ProductPartitioner();
+
 
         partitioner.setDataSource(dataSource);
 
@@ -184,9 +188,15 @@ public class ApiStepConfiguration { // 마스터 스텝
 
         Map<String , ItemWriter<ApiRequestVO>> writerMap = new HashMap<>();
         // 상품 타입의 숫자
+//        writerMap.put("1" , new ApiItemWriter1(apiService1));
+//        writerMap.put("2" , new ApiItemWriter2(apiService2));
+//        writerMap.put("3" , new ApiItemWriter3(apiService3));
+
+        // 상품 타입의 숫자
         writerMap.put("1" , new ApiItemWriter1(apiService1));
         writerMap.put("2" , new ApiItemWriter2(apiService2));
         writerMap.put("3" , new ApiItemWriter3(apiService3));
+
 
         classifier.setWriterMap(writerMap);
         writer.setClassifier(classifier);
